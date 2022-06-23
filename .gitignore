@@ -1,3 +1,6 @@
-**/.vs
+**/.vscode
+**/.DS_Store
 **/*.bin
 **/*.abi
+**/.env
+**/encryptedKey.json
