@@ -4,3 +4,5 @@
 **/*.abi
 **/.env
 **/encryptedKey.json
+**/artifacts
+**/cache
