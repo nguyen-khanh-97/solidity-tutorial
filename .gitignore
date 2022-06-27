@@ -6,6 +6,7 @@
 **/encryptedKey.json
 **/artifacts
 **/cache
-**/yarn-error.log
-**/gas-reporter.txt
 **/coverage*
+**/node_modules
+**/yarn-error.log
+**/gas-report.txt
