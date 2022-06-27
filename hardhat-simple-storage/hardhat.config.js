@@ -1,8 +1,15 @@
 require("@nomiclabs/hardhat-waffle")
 require("dotenv").config()
 require("@nomiclabs/hardhat-etherscan")
-require("./tasks/block-number")
-require("./tasks/accounts")
+require("hardhat-gas-reporter")
+require("solidity-coverage")
+
+// Add all task
+const fs = require("fs")
+const path = require("path")
+fs.readdirSync("./tasks").forEach(function (fullname) {
+    require("./tasks/" + path.basename(fullname, ".js"))
+})
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -21,12 +28,14 @@ require("./tasks/accounts")
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-const RINKEBY_RPC_URL = process.env.RINKEBY_RPC_URL
-const PRIVATE_KEY = process.env.PRIVATE_KEY
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY
+const RINKEBY_RPC_URL =
+    process.env.RINKEBY_RPC_URL || "https://eth-rinkeby.example"
+const PRIVATE_KEY = process.env.PRIVATE_KEY || "0xkey"
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "key"
+const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || "key"
 
 module.exports = {
-    defaultNetwork: "localhost",
+    defaultNetwork: "hardhat",
     networks: {
         rinkeby: {
             url: RINKEBY_RPC_URL,
@@ -44,4 +53,12 @@ module.exports = {
         apiKey: ETHERSCAN_API_KEY,
     },
     solidity: "0.8.7",
+    gasReporter: {
+        enable: false,
+        outputFile: "gas-reporter.txt",
+        noColors: true,
+        currency: "USD",
+        coinmarketcap: COINMARKETCAP_API_KEY,
+        token: "NEAR",
+    },
 }
