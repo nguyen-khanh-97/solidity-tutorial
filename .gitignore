@@ -10,3 +10,4 @@
 **/node_modules
 **/yarn-error.log
 **/gas-report.txt
+**/deployments
