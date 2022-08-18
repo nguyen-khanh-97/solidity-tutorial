@@ -32,7 +32,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
         networkConfig[chainId]["callbackGasLimit"],
         networkConfig[chainId]["interval"],
     ]
-    const raffer = await deploy("Raffer", {
+    const raffle = await deploy("Raffle", {
         from: deployer,
         args: args,
         log: true,
@@ -41,8 +41,8 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
 
     if (!developementChain.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
         // verify
-        await verify(raffer.address, args)
+        await verify(raffle.address, args)
     }
 }
 
-module.exports.tag = ["all", "raffer"]
+module.exports.tags = ["all", "raffle"]

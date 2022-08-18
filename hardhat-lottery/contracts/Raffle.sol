@@ -11,20 +11,20 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/KeeperCompatible.sol";
 
 // error
-error Raffer__NotOwner();
-error Raffer__NotEnoughETH();
-error Raffer__NotOpen();
-error Raffer__TransferFailed();
-error Raffer__UpKeepNotNeeded(uint256 currentBalance, uint256 numPlayers, uint256 rafferState);
+error Raffle__NotOwner();
+error Raffle__NotEnoughETH();
+error Raffle__NotOpen();
+error Raffle__TransferFailed();
+error Raffle__UpKeepNotNeeded(uint256 currentBalance, uint256 numPlayers, uint256 raffleState);
 
-/** @title A sample raffer contract
+/** @title A sample raffle contract
  *  @author NguyenKhanh
  *  @notice This contract is for creating an untamperable decentralized smart contract
  *  @dev Implements Chainlink VRF v2 and Chainlink Keepers
  */
-contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
+contract Raffle is VRFConsumerBaseV2, KeeperCompatible {
     /* Type declarations */
-    enum RafferState {
+    enum RaffleState {
         OPEN,
         CLOSE,
         PENDING,
@@ -44,18 +44,18 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
 
     /* Lottery Variables */
     address payable private s_currentWinner;
-    RafferState private s_rafferState;
+    RaffleState private s_raffleState;
     uint256 private s_lastTimeStamp;
     uint256 private s_interval;
 
     /* Events */
-    event RafferEnter(address indexed player);
-    event RequestedRafferWinner(uint256 indexed requestId);
+    event RaffleEnter(address indexed player);
+    event RequestedRaffleWinner(uint256 indexed requestId);
     event WinerPicked(address indexed winner);
 
     /* Modifiers */
     modifier onlyOwner() {
-        if (msg.sender != i_owner) revert Raffer__NotOwner();
+        if (msg.sender != i_owner) revert Raffle__NotOwner();
         _;
     }
 
@@ -75,7 +75,7 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         i_gasLine = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
-        s_rafferState = RafferState.OPEN;
+        s_raffleState = RaffleState.OPEN;
         s_lastTimeStamp = block.timestamp;
         s_interval = interval;
     }
@@ -88,18 +88,18 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         s_interval = interval;
     }
 
-    function enterRaffer() public payable {
+    function enterRaffle() public payable {
         // require(msg.value >= s_entranceFee, "Not enough ETH");
         if (msg.value < s_entranceFee) {
-            revert Raffer__NotEnoughETH();
+            revert Raffle__NotEnoughETH();
         }
-        if (s_rafferState != RafferState.OPEN) {
-            revert Raffer__NotOpen();
+        if (s_raffleState != RaffleState.OPEN) {
+            revert Raffle__NotOpen();
         }
         s_players.push(payable(msg.sender));
         // Emit an event when we update a dynamic array or mapping
         // Named the event with the function name reversed
-        emit RafferEnter(msg.sender);
+        emit RaffleEnter(msg.sender);
     }
 
     /* external function */
@@ -124,7 +124,7 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         )
     {
         // We don't use the checkData in this example. The checkData is defined when the Upkeep was registered.
-        bool isOpen = (RafferState.OPEN == s_rafferState);
+        bool isOpen = (RaffleState.OPEN == s_raffleState);
         bool timpePass = ((block.timestamp - s_lastTimeStamp) >= s_interval);
         bool hasPlayer = (s_players.length > 0);
         bool hasBalance = address(this).balance > 0;
@@ -137,10 +137,10 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         //We highly recommend revalidating the upkeep in the performUpkeep function
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
-            revert Raffer__UpKeepNotNeeded(
+            revert Raffle__UpKeepNotNeeded(
                 address(this).balance,
                 s_players.length,
-                uint256(s_rafferState)
+                uint256(s_raffleState)
             );
         }
 
@@ -149,7 +149,7 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         // Request a random number
         // Once we get it, do something with it
         // 2 transaction process
-        s_rafferState = RafferState.CACULATING;
+        s_raffleState = RaffleState.CACULATING;
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLine, // gasLane
             i_subscriptionId,
@@ -157,7 +157,7 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
             i_callbackGasLimit,
             NUM_WORDS
         );
-        emit RequestedRafferWinner(requestId);
+        emit RequestedRaffleWinner(requestId);
     }
 
     /* internal function */
@@ -168,12 +168,12 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable currentWinner = s_players[indexOfWinner];
         s_currentWinner = currentWinner;
-        s_rafferState = RafferState.OPEN;
+        s_raffleState = RaffleState.OPEN;
         s_lastTimeStamp = block.timestamp;
         (bool success, ) = currentWinner.call{value: address(this).balance}("");
         // require(success);
         if (!success) {
-            revert Raffer__TransferFailed();
+            revert Raffle__TransferFailed();
         }
         s_players = new address payable[](0);
         emit WinerPicked(currentWinner);
@@ -189,7 +189,7 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         return s_entranceFee;
     }
 
-    function getPlayer(uint256 index) public view returns (address) {
+    function getPlayers(uint256 index) public view returns (address) {
         return s_players[index];
     }
 
@@ -197,8 +197,8 @@ contract Raffer is VRFConsumerBaseV2, KeeperCompatible {
         return s_currentWinner;
     }
 
-    function getRafferState() public view returns (RafferState) {
-        return s_rafferState;
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
     }
 
     function getNumWords() public pure returns (uint32) {
